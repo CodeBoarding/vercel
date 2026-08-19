@@ -59,14 +59,6 @@ export default class FileBlob implements FileBase {
   }
 
   toStream(): NodeJS.ReadableStream {
-    // Encode strings before streaming. into-stream@5 slices strings with
-    // String#slice at the ~16KiB highWaterMark; a UTF-16 surrogate pair
-    // (any 4-byte UTF-8 character) on that boundary is split and each half
-    // becomes U+FFFD when re-encoded, corrupting Edge Function bundles.
-    const data =
-      typeof this.data === 'string'
-        ? Buffer.from(this.data, 'utf8')
-        : this.data;
-    return intoStream(data);
+    return intoStream(this.data);
   }
 }
