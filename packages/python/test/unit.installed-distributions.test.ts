@@ -379,22 +379,12 @@ describe('InstalledPythonDistributions', () => {
 
     expect(
       await installed.collectBytecodeFiles({ vendorDirName: '_vendor' })
-    ).toEqual({
-      files: {},
-      totalSize: 0,
-      perItemSizes: new Map(),
-      items: [],
-    });
+    ).toEqual({ files: {}, totalSize: 0, perItemSizes: new Map() });
     expect(
       await installed.collectPrefixBytecodeFiles({
         stagingDir: '/tmp/staging',
         runtimeRoot: '/var/task/_vendor',
       })
-    ).toEqual({
-      files: {},
-      totalSize: 0,
-      perItemSizes: new Map(),
-      items: [],
-    });
+    ).toEqual({ files: {}, totalSize: 0, perItemSizes: new Map() });
   });
 });

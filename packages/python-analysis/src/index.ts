@@ -18,18 +18,6 @@ export {
 } from './semantic/entrypoints';
 
 // =============================================================================
-// Static import-graph analysis (WASM-based extraction + module resolution)
-// =============================================================================
-
-export { collectImportClosure, extractImports } from './semantic/import-graph';
-
-export type {
-  ImportClosureOptions,
-  ImportClosureResult,
-  ImportStmt,
-} from './semantic/import-graph';
-
-// =============================================================================
 // Installed package analysis (WASM-based .dist-info parsing)
 // =============================================================================
 
@@ -98,7 +86,10 @@ export {
 // Wheel compatibility checking
 // =============================================================================
 
-export { evaluateMarker, isWheelCompatible } from './manifest/wheel-compat';
+export {
+  evaluateMarker,
+  isWheelCompatible,
+} from './manifest/wheel-compat';
 
 // =============================================================================
 // Python selection (runtime + types)

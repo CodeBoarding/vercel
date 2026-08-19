@@ -11,7 +11,6 @@ import {
   derivePycPath,
   deriveStagedPycFsPath,
   type BytecodeCollectionResult,
-  type BytecodeItem,
 } from './compileall';
 import { getVenvSitePackagesDirs } from './install';
 
@@ -146,14 +145,6 @@ export class InstalledPythonDistributions {
     this.pythonMinor = options.pythonMinor;
   }
 
-  /**
-   * Site-packages roots of the build venv (resolved). Used as import-closure
-   * search roots and to map traced module files to vendor module keys.
-   */
-  getSitePackageDirs(): string[] {
-    return this.sitePackageDirs;
-  }
-
   async mirrorPackagesIntoVendor({
     vendorDirName,
     includePackages,
@@ -280,15 +271,13 @@ export class InstalledPythonDistributions {
     includePackages?: string[];
   }): Promise<BytecodeCollectionResult> {
     if (this.pythonMajor == null || this.pythonMinor == null) {
-      return { files: {}, totalSize: 0, perItemSizes: new Map(), items: [] };
+      return { files: {}, totalSize: 0, perItemSizes: new Map() };
     }
 
     interface PendingEntry {
       bundlePath: string;
       srcFsPath: string;
       packageName: string;
-      moduleKey: string;
-      sourceAbsPath: string;
     }
 
     const pending: PendingEntry[] = [];
@@ -300,9 +289,8 @@ export class InstalledPythonDistributions {
 
     for (const { packageName, sitePackagesDir, files } of distributionGroups) {
       for (const { relativePath } of files) {
-        const moduleKey = relativePath.replaceAll(sep, '/');
         const pycRelativePath = derivePycPath(
-          moduleKey,
+          relativePath.replaceAll(sep, '/'),
           this.pythonMajor,
           this.pythonMinor
         );
@@ -313,8 +301,6 @@ export class InstalledPythonDistributions {
           bundlePath: join(vendorDirName, pycFilePath).replace(/\\/g, '/'),
           srcFsPath: join(sitePackagesDir, pycFilePath),
           packageName,
-          moduleKey,
-          sourceAbsPath: join(sitePackagesDir, relativePath),
         });
       }
     }
@@ -338,15 +324,13 @@ export class InstalledPythonDistributions {
     includePackages?: string[];
   }): Promise<BytecodeCollectionResult> {
     if (this.pythonMajor == null || this.pythonMinor == null) {
-      return { files: {}, totalSize: 0, perItemSizes: new Map(), items: [] };
+      return { files: {}, totalSize: 0, perItemSizes: new Map() };
     }
 
     interface PendingEntry {
       bundlePath: string;
       srcFsPath: string;
       packageName: string;
-      moduleKey: string;
-      sourceAbsPath: string;
     }
 
     const pending: PendingEntry[] = [];
@@ -374,13 +358,7 @@ export class InstalledPythonDistributions {
         );
         if (!srcFsPath || !bundlePath) continue;
 
-        pending.push({
-          bundlePath,
-          srcFsPath,
-          packageName,
-          moduleKey: recordPath,
-          sourceAbsPath: absolutePath,
-        });
+        pending.push({ bundlePath, srcFsPath, packageName });
       }
     }
 
@@ -399,62 +377,36 @@ export class InstalledPythonDistributions {
       bundlePath: string;
       srcFsPath: string;
       packageName: string;
-      moduleKey: string;
-      sourceAbsPath: string;
     }[]
   ): Promise<BytecodeCollectionResult> {
     const results = await Promise.all(
-      pending.map(
-        async ({
-          bundlePath,
-          srcFsPath,
-          packageName,
-          moduleKey,
-          sourceAbsPath,
-        }) => {
-          try {
-            const stats = await fs.promises.stat(srcFsPath);
-            return {
-              bundlePath,
-              srcFsPath,
-              size: stats.size,
-              packageName,
-              moduleKey,
-              sourceAbsPath,
-            };
-          } catch {
-            return null;
-          }
+      pending.map(async ({ bundlePath, srcFsPath, packageName }) => {
+        try {
+          const stats = await fs.promises.stat(srcFsPath);
+          return { bundlePath, srcFsPath, size: stats.size, packageName };
+        } catch {
+          return null;
         }
-      )
+      })
     );
 
     const files: Files = {};
     let totalSize = 0;
     const perItemSizes = new Map<string, number>();
-    const items: BytecodeItem[] = [];
 
     for (const result of results) {
       if (!result) continue;
-      const file = new FileFsRef({
+      files[result.bundlePath] = new FileFsRef({
         fsPath: result.srcFsPath,
         size: result.size,
       });
-      files[result.bundlePath] = file;
       totalSize += result.size;
       perItemSizes.set(
         result.packageName,
         (perItemSizes.get(result.packageName) ?? 0) + result.size
       );
-      items.push({
-        bundlePath: result.bundlePath,
-        file,
-        size: result.size,
-        moduleKey: result.moduleKey,
-        sourceAbsPath: result.sourceAbsPath,
-      });
     }
 
-    return { files, totalSize, perItemSizes, items };
+    return { files, totalSize, perItemSizes };
   }
 }
