@@ -8,7 +8,6 @@ import * as segmentsFlag from '../../../../src/commands/flags/segments';
 import * as splitFlag from '../../../../src/commands/flags/split';
 import * as updateFlag from '../../../../src/commands/flags/update';
 import * as versionsFlag from '../../../../src/commands/flags/versions';
-import * as unarchiveFlag from '../../../../src/commands/flags/unarchive';
 import { client } from '../../../mocks/client';
 
 describe('flags', () => {
@@ -22,7 +21,6 @@ describe('flags', () => {
   const splitSpy = vi.spyOn(splitFlag, 'default').mockResolvedValue(0);
   const updateSpy = vi.spyOn(updateFlag, 'default').mockResolvedValue(0);
   const versionsSpy = vi.spyOn(versionsFlag, 'default').mockResolvedValue(0);
-  const unarchiveSpy = vi.spyOn(unarchiveFlag, 'default').mockResolvedValue(0);
 
   afterEach(() => {
     lsSpy.mockClear();
@@ -33,7 +31,6 @@ describe('flags', () => {
     splitSpy.mockClear();
     updateSpy.mockClear();
     versionsSpy.mockClear();
-    unarchiveSpy.mockClear();
   });
 
   describe('--help', () => {
@@ -149,13 +146,5 @@ describe('flags', () => {
     client.setArgv('flags', 'segments', ...args);
     await flags(client);
     expect(segmentsSpy).toHaveBeenCalledWith(client);
-  });
-
-  it('routes to unarchive subcommand', async () => {
-    const args: string[] = ['my-feature', '--yes'];
-
-    client.setArgv('flags', 'unarchive', ...args);
-    await flags(client);
-    expect(unarchiveSpy).toHaveBeenCalledWith(client, args);
   });
 });

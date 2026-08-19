@@ -1085,35 +1085,6 @@ export const archiveSubcommand = {
   ],
 } as const;
 
-export const unarchiveSubcommand = {
-  name: 'unarchive',
-  aliases: [],
-  description: 'Unarchive a feature flag',
-  arguments: [
-    {
-      name: 'flag',
-      required: true,
-    },
-  ],
-  options: [
-    projectOption,
-    {
-      ...yesOption,
-      description: 'Skip the confirmation prompt when unarchiving a flag',
-    },
-  ],
-  examples: [
-    {
-      name: 'Unarchive a feature flag',
-      value: `${packageName} flags unarchive my-feature-flag`,
-    },
-    {
-      name: 'Unarchive without confirmation',
-      value: `${packageName} flags unarchive my-feature-flag --yes`,
-    },
-  ],
-} as const;
-
 export const disableSubcommand = {
   name: 'disable',
   aliases: [],
@@ -1667,7 +1638,6 @@ export const flagsCommand = {
     rolloutSubcommand,
     removeSubcommand,
     archiveSubcommand,
-    unarchiveSubcommand,
     disableSubcommand,
     enableSubcommand,
     rulesSubcommand,
